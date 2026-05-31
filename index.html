@@ -540,6 +540,10 @@
     </div>
     <div class="header-mid"></div>
     <div class="header-right">
+      <div class="pill" id="phase-pill" style="cursor:pointer;" onclick="showView('setup')" title="Click to change phase">
+        <span id="phase-pill-icon">🟡</span>
+        <span id="phase-pill-text">Warmup mode</span>
+      </div>
       <div class="pill" id="conn-pill">
         <span class="pill-dot"></span>
         <span id="conn-text">Not connected</span>
@@ -743,6 +747,17 @@
       </div>
 
       <div class="setup-card">
+        <div class="setup-head"><div class="step-dot">2</div><h3>Warmup phase</h3></div>
+        <p>Controls how the AI drafts replies. During warmup, replies focus purely on being helpful with zero app mentions. Set this to match where you are in your Reddit journey.</p>
+        <select class="setup-input" id="warmup-phase" onchange="savePhase()" style="margin-bottom:10px;">
+          <option value="warmup">🟡 Warmup (Week 1–2) — helpful only, no app mention</option>
+          <option value="soft">🔵 Soft intro (Week 3–4) — mention app only when perfect fit</option>
+          <option value="normal">🟢 Normal (Week 5+) — natural mentions in relevant posts</option>
+        </select>
+        <div id="phase-desc" style="font-size:12px;color:var(--text-2);line-height:1.5;padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm);"></div>
+      </div>
+
+      <div class="setup-card">
         <div class="setup-head"><div class="step-dot">2</div><h3>Subreddits to monitor</h3></div>
         <p>Your 3 target subreddits are pre-loaded. Add or remove as needed.</p>
         <div id="sub-tags" class="tag-wrap"></div>
@@ -778,6 +793,7 @@ let S = {
   appCtx: localStorage.getItem('rai_ctx') || '',
   posts: JSON.parse(localStorage.getItem('rai_posts') || '[]'),
   queue: JSON.parse(localStorage.getItem('rai_queue') || '[]'),
+  phase: localStorage.getItem('rai_phase') || 'warmup',
   selectedId: null,
   selectedSub: 'all',
   filters: { high: false, pending: false },
@@ -807,7 +823,75 @@ function showView(v) {
   if(v === 'setup') renderSetup();
 }
 
-function saveApiKey() {
+function savePhase() {
+  S.phase = document.getElementById('warmup-phase').value;
+  localStorage.setItem('rai_phase', S.phase);
+  updatePhasePill();
+  updatePhaseDesc();
+}
+
+function updatePhasePill() {
+  const map = {
+    warmup: { icon: '🟡', text: 'Warmup mode' },
+    soft:   { icon: '🔵', text: 'Soft intro mode' },
+    normal: { icon: '🟢', text: 'Normal mode' }
+  };
+  const m = map[S.phase] || map.warmup;
+  document.getElementById('phase-pill-icon').textContent = m.icon;
+  document.getElementById('phase-pill-text').textContent = m.text;
+}
+
+function updatePhaseDesc() {
+  const el = document.getElementById('phase-desc');
+  if(!el) return;
+  const map = {
+    warmup: '🟡 <strong>Warmup (Week 1–2):</strong> Replies are purely helpful — real advice, empathetic tone, zero mention of RecoverAI. Goal is to build karma and look like a genuine community member.',
+    soft:   '🔵 <strong>Soft intro (Week 3–4):</strong> Still leads with real advice. Mentions RecoverAI only when it fits naturally — framed as "I\'ve been building something for this" not a pitch. Skipped if it doesn\'t fit perfectly.',
+    normal: '🟢 <strong>Normal (Week 5+):</strong> Helpful reply first, then a natural one-line mention of RecoverAI where relevant. Account has enough history to include it without looking suspicious.'
+  };
+  el.innerHTML = map[S.phase] || map.warmup;
+}
+
+function getPhasePrompt(p, ctx) {
+  const base = `You are helping the founder of RecoverAI engage authentically on Reddit.
+
+App context: ${ctx}
+
+Reddit post from r/${p.sub}:
+Title: ${p.title}
+Body: ${p.body}
+
+`;
+  if(S.phase === 'warmup') {
+    return base + `Write a Reddit reply following these STRICT warmup rules:
+1. Be genuinely helpful — give real, specific advice that answers their actual problem
+2. Sound like a normal person who has experience with this topic. Casual, empathetic, direct.
+3. DO NOT mention RecoverAI, any app, or anything you are building. Not even a hint.
+4. This is purely about building trust and credibility as a helpful community member.
+5. 80–150 words. No bullet points. No headers. Conversational prose only.
+
+Only return the reply text, nothing else.`;
+  }
+  if(S.phase === 'soft') {
+    return base + `Write a Reddit reply following these soft intro rules:
+1. Lead with genuine, specific helpful advice that fully addresses their problem
+2. Sound like a normal person — casual, empathetic, not salesy at all
+3. Only if it fits PERFECTLY and naturally, add ONE sentence at the end mentioning you've been building an app for exactly this problem — phrased like "I've actually been building something for this exact issue if you're curious, it's called RecoverAI" — never pushy
+4. If the app mention doesn't fit naturally, leave it out entirely. When in doubt, leave it out.
+5. 80–160 words. No bullet points. No headers. Conversational prose only.
+
+Only return the reply text, nothing else.`;
+  }
+  // normal
+  return base + `Write a Reddit reply following these rules:
+1. Lead with genuinely helpful, specific advice that answers their actual problem
+2. Sound like a normal person — casual, empathetic, not a marketer
+3. Where relevant, naturally mention RecoverAI in one sentence — frame it as something you built for this exact problem, not a pitch. E.g. "I actually built an app called RecoverAI for exactly this — it generates a personalised rehab plan based on your specific injury."
+4. If it doesn't fit naturally, leave it out
+5. 80–160 words. No bullet points. No headers. Conversational prose only.
+
+Only return the reply text, nothing else.`;
+}
   const val = document.getElementById('api-key-inp').value.trim();
   const el = document.getElementById('key-status');
   if(!val.startsWith('sk-ant-') && val.length < 10) {
@@ -833,6 +917,9 @@ function renderSetup() {
   if(S.apiKey) { document.getElementById('api-key-inp').value = S.apiKey; updateConnPill(true); }
   const ctx = document.getElementById('app-ctx');
   if(S.appCtx) ctx.value = S.appCtx;
+  const phaseEl = document.getElementById('warmup-phase');
+  if(phaseEl) { phaseEl.value = S.phase; }
+  updatePhaseDesc();
   renderSubTags();
 }
 
@@ -963,22 +1050,7 @@ async function draftReply() {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `You are helping the founder of RecoverAI engage authentically on Reddit.
-
-App context: ${ctx}
-
-Reddit post from r/${p.sub}:
-Title: ${p.title}
-Body: ${p.body}
-
-Write a Reddit reply that:
-1. Is genuinely helpful first — answer the person's actual question with real, specific advice
-2. Sounds like a normal person, not a marketer. Casual, empathetic, direct.
-3. Mentions RecoverAI naturally only if it REALLY fits — phrased as "I've been building an app for exactly this" not "check out my app". If it doesn't fit naturally, leave it out entirely.
-4. Is 80–150 words. No bullet points. No headers. Conversational paragraphs only.
-5. Never sounds promotional or salesy.
-
-Only return the reply text, nothing else.`
+          content: getPhasePrompt(p, ctx)
         }]
       })
     });
@@ -1143,6 +1215,7 @@ function getMockPosts() {
 
 // Init
 if(S.apiKey) updateConnPill(true);
+updatePhasePill();
 renderSidebar();
 renderPosts();
 updateStats();
