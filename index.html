@@ -4,529 +4,202 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RecoverAI — Reddit Monitor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --red: #E24B4A;
-    --red-light: #FCEBEB;
-    --red-mid: #F09595;
-    --green: #3B6D11;
-    --green-light: #EAF3DE;
-    --amber: #854F0B;
-    --amber-light: #FAEEDA;
-    --blue: #185FA5;
-    --blue-light: #E6F1FB;
-    --bg: #F7F6F3;
-    --surface: #FFFFFF;
-    --border: rgba(0,0,0,0.08);
-    --border-strong: rgba(0,0,0,0.14);
-    --text: #1A1A18;
-    --text-2: #5A5A56;
-    --text-3: #8A8A84;
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  /* Layout */
-  .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-  /* Header */
-  .header {
-    background: var(--surface);
-    border-bottom: 0.5px solid var(--border);
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-    height: 56px;
-    gap: 16px;
-    flex-shrink: 0;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-mark {
-    width: 30px; height: 30px;
-    background: var(--red);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .logo-mark i { color: #fff; font-size: 15px; }
-  .logo-name { font-size: 14px; font-weight: 500; }
-  .logo-tag { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-  .header-mid { flex: 1; }
-  .header-right { display: flex; align-items: center; gap: 8px; }
-  .pill {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 11px; padding: 4px 10px;
-    border-radius: 20px;
-    border: 0.5px solid var(--border);
-    background: var(--bg);
-    color: var(--text-2);
-  }
-  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
-  .pill.connected .pill-dot { background: var(--green); }
-  .pill.connected { color: var(--green); border-color: #97C459; background: var(--green-light); }
-  .icon-btn {
-    width: 32px; height: 32px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: transparent;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-2);
-    transition: background 0.15s;
-  }
-  .icon-btn:hover { background: var(--bg); }
-  .icon-btn i { font-size: 15px; }
-
-  /* Nav tabs */
-  .nav {
-    background: var(--surface);
-    border-bottom: 0.5px solid var(--border);
-    display: flex;
-    padding: 0 1.5rem;
-    gap: 0;
-    flex-shrink: 0;
-  }
-  .nav-tab {
-    font-size: 12px;
-    padding: 10px 14px;
-    cursor: pointer;
-    color: var(--text-3);
-    border-bottom: 2px solid transparent;
-    display: flex; align-items: center; gap: 6px;
-    transition: color 0.15s;
-    user-select: none;
-  }
-  .nav-tab:hover { color: var(--text-2); }
-  .nav-tab.active { color: var(--text); border-bottom-color: var(--red); font-weight: 500; }
-  .nav-tab i { font-size: 14px; }
-  .badge {
-    font-size: 10px; font-weight: 500;
-    background: var(--red); color: #fff;
-    border-radius: 10px; padding: 1px 5px;
-    min-width: 16px; text-align: center;
-  }
-
-  /* Body */
-  .body { display: flex; flex: 1; overflow: hidden; }
-
-  /* Sidebar */
-  .sidebar {
-    width: 200px;
-    border-right: 0.5px solid var(--border);
-    background: var(--surface);
-    padding: 1rem 0.75rem;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .sidebar-label {
-    font-size: 10px; font-weight: 500;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0 6px;
-    margin-bottom: 6px;
-  }
-  .sub-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    margin-bottom: 1px;
-    transition: background 0.1s;
-  }
-  .sub-row:hover { background: var(--bg); }
-  .sub-row.active { background: var(--red-light); }
-  .sub-row.active .sub-n { color: var(--red); font-weight: 500; }
-  .sub-n { font-size: 12px; color: var(--text-2); }
-  .sub-c {
-    font-size: 10px; font-weight: 500;
-    background: var(--red); color: #fff;
-    border-radius: 10px; padding: 1px 6px;
-    min-width: 18px; text-align: center;
-  }
-  .sub-c.zero { background: var(--bg); color: var(--text-3); }
-  .sidebar-divider { height: 0.5px; background: var(--border); margin: 10px 6px; }
-
-  /* Main */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  /* Stats bar */
-  .stats-bar {
-    display: flex; gap: 1px;
-    background: var(--border);
-    border-bottom: 0.5px solid var(--border);
-    flex-shrink: 0;
-  }
-  .stat {
-    flex: 1; background: var(--surface);
-    padding: 10px 14px;
-  }
-  .stat-n { font-size: 20px; font-weight: 500; color: var(--text); font-family: 'DM Mono', monospace; }
-  .stat-l { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-
-  /* Toolbar */
-  .toolbar {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 12px;
-    border-bottom: 0.5px solid var(--border);
-    background: var(--surface);
-    flex-shrink: 0;
-  }
-  .search-box {
-    flex: 1; position: relative;
-  }
-  .search-box i {
-    position: absolute; left: 9px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-3); font-size: 14px;
-    pointer-events: none;
-  }
-  .search-box input {
-    width: 100%;
-    padding: 6px 10px 6px 30px;
-    font-size: 12px;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-  }
-  .search-box input:focus { border-color: var(--border-strong); }
-  .filter-btn {
-    font-size: 11px; font-weight: 500;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: transparent;
-    color: var(--text-2);
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .filter-btn:hover { background: var(--bg); }
-  .filter-btn.on { background: var(--green-light); color: var(--green); border-color: #97C459; }
-  .filter-btn i { font-size: 13px; }
-
-  /* Post list + detail split */
-  .split { display: flex; flex: 1; overflow: hidden; }
-
-  /* Posts */
-  .posts { flex: 1; overflow-y: auto; }
-  .post-card {
-    padding: 12px 14px;
-    border-bottom: 0.5px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-    background: var(--surface);
-  }
-  .post-card:hover { background: var(--bg); }
-  .post-card.selected { background: var(--red-light); }
-  .post-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-  .post-sub { font-size: 11px; font-weight: 500; color: var(--red); }
-  .post-age { font-size: 11px; color: var(--text-3); }
-  .score-badge {
-    margin-left: auto;
-    font-size: 10px; font-weight: 500;
-    padding: 2px 7px; border-radius: 10px;
-  }
-  .score-hi { background: var(--green-light); color: var(--green); }
-  .score-med { background: var(--amber-light); color: var(--amber); }
-  .score-lo { background: var(--bg); color: var(--text-3); }
-  .post-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
-  .post-snip { font-size: 12px; color: var(--text-2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .post-foot { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-  .post-stat { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 3px; }
-  .post-stat i { font-size: 12px; }
-  .status-tag {
-    margin-left: auto;
-    font-size: 10px; font-weight: 500;
-    padding: 2px 7px; border-radius: 10px;
-  }
-  .t-pending { background: var(--amber-light); color: var(--amber); }
-  .t-drafted { background: var(--blue-light); color: var(--blue); }
-  .t-posted { background: var(--green-light); color: var(--green); }
-  .t-skipped { background: var(--bg); color: var(--text-3); }
-
-  /* Detail panel */
-  .detail {
-    width: 360px;
-    border-left: 0.5px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .detail-empty {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 8px; padding: 2rem; text-align: center;
-  }
-  .detail-empty i { font-size: 28px; color: var(--text-3); }
-  .detail-empty p { font-size: 12px; color: var(--text-3); }
-  .detail-head {
-    padding: 14px;
-    border-bottom: 0.5px solid var(--border);
-    flex-shrink: 0;
-  }
-  .d-sub { font-size: 11px; font-weight: 500; color: var(--red); margin-bottom: 4px; }
-  .d-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
-  .d-body { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-bottom: 8px; max-height: 80px; overflow-y: auto; }
-  .score-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-  .score-lbl { font-size: 10px; color: var(--text-3); width: 54px; flex-shrink: 0; }
-  .score-track { flex: 1; height: 3px; background: var(--bg); border-radius: 2px; overflow: hidden; }
-  .score-fill { height: 100%; border-radius: 2px; }
-  .score-fill.red { background: var(--red); }
-  .score-fill.amber { background: #EF9F27; }
-  .score-val { font-size: 11px; font-weight: 500; color: var(--text); width: 28px; text-align: right; font-family: 'DM Mono', monospace; }
-  .d-link { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--blue); text-decoration: none; margin-top: 6px; }
-  .d-link:hover { text-decoration: underline; }
-  .d-link i { font-size: 12px; }
-
-  .reply-area { flex: 1; display: flex; flex-direction: column; padding: 12px 14px; overflow: hidden; }
-  .reply-lbl {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .reply-lbl span { font-size: 11px; font-weight: 500; color: var(--text-2); }
-  .reply-lbl .status { font-size: 11px; color: var(--text-3); }
-  textarea {
-    flex: 1; min-height: 140px;
-    font-size: 12px; line-height: 1.6;
-    color: var(--text);
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    resize: none;
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-  }
-  textarea:focus { border-color: var(--border-strong); }
-  .action-row { display: flex; gap: 6px; margin-top: 8px; }
-  .btn-draft {
-    flex: 1; font-size: 12px; font-weight: 500;
-    padding: 8px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border-strong);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    transition: background 0.15s;
-  }
-  .btn-draft:hover { background: var(--bg); }
-  .btn-draft i { font-size: 13px; }
-  .btn-post {
-    flex: 1; font-size: 12px; font-weight: 500;
-    padding: 8px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: var(--red);
-    color: #fff;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    transition: opacity 0.15s;
-  }
-  .btn-post:hover { opacity: 0.9; }
-  .btn-post i { font-size: 13px; }
-  .btn-skip {
-    font-size: 12px;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: transparent;
-    color: var(--text-3);
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-skip:hover { background: var(--bg); }
-  .post-result {
-    display: none;
-    font-size: 11px;
-    margin-top: 6px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-  }
-  .post-result.success { background: var(--green-light); color: var(--green); }
-  .post-result.error { background: var(--red-light); color: #A32D2D; }
-
-  /* Empty state */
-  .empty-state {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 8px; padding: 3rem; text-align: center;
-  }
-  .empty-state i { font-size: 30px; color: var(--text-3); }
-  .empty-state p { font-size: 12px; color: var(--text-3); max-width: 200px; }
-
-  /* Spinner */
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spin { animation: spin 0.8s linear infinite; display: inline-block; }
-
-  /* Loading */
-  .loading-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 16px 14px;
-    font-size: 12px; color: var(--text-3);
-  }
-
-  /* Setup view */
-  .setup-view { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; max-width: 680px; }
-  .setup-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-  }
-  .setup-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .step-dot {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--red); color: #fff;
-    font-size: 10px; font-weight: 500;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .setup-card h3 { font-size: 13px; font-weight: 500; }
-  .setup-card p { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; }
-  .setup-input {
-    width: 100%;
-    padding: 7px 10px;
-    font-size: 12px;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    margin-bottom: 6px;
-    outline: none;
-  }
-  .setup-input:focus { border-color: var(--border-strong); }
-  .setup-row { display: flex; gap: 6px; }
-  .setup-row .setup-input { flex: 1; margin: 0; }
-  .btn-primary {
-    font-size: 12px; font-weight: 500;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: var(--red);
-    color: #fff;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    display: inline-flex; align-items: center; gap: 5px;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-primary i { font-size: 14px; }
-  .btn-secondary {
-    font-size: 12px; font-weight: 500;
-    padding: 8px 14px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border-strong);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    display: inline-flex; align-items: center; gap: 5px;
-  }
-  .btn-secondary:hover { background: var(--bg); }
-  .tag-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-  .kw-tag {
-    font-size: 11px; padding: 3px 9px;
-    border-radius: 10px;
-    border: 0.5px solid var(--border);
-    background: var(--bg);
-    color: var(--text-2);
-    cursor: pointer;
-    display: flex; align-items: center; gap: 4px;
-    transition: all 0.1s;
-  }
-  .kw-tag.on { background: var(--red-light); color: #A32D2D; border-color: var(--red-mid); }
-  .kw-tag i { font-size: 10px; }
-  .cred-status { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 5px; margin-top: 8px; }
-  .cred-status.ok { color: var(--green); }
-  .cred-status.err { color: var(--red); }
-
-  /* Queue view */
-  .queue-view { flex: 1; overflow-y: auto; padding: 1.5rem; }
-  .queue-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 10px;
-  }
-  .queue-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-  .queue-sub { font-size: 11px; font-weight: 500; color: var(--red); }
-  .queue-draft {
-    font-size: 12px; color: var(--text-2); line-height: 1.6;
-    background: var(--bg); padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    margin-top: 6px;
-  }
-  .queue-time { font-size: 11px; color: var(--text-3); margin-top: 6px; }
-
-  /* Playbook view */
-  .playbook-view { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; max-width: 680px; }
-  .playbook-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
-  .playbook-card h3 { font-size: 12px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
-  .signal { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
-  .signal:last-child { border-bottom: none; padding-bottom: 0; }
-  .sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-  .sdot.g { background: #639922; }
-  .sdot.r { background: var(--red); }
-  .sdot.a { background: #EF9F27; }
-  .signal p { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-  .signal p strong { font-weight: 500; color: var(--text); }
-  .ex-box { background: var(--bg); padding: 8px 10px; margin-top: 6px; border-left: 2px solid #639922; }
-  .ex-box.bad { border-left-color: var(--red); }
-  .ex-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-  .ex-text { font-size: 12px; color: var(--text); line-height: 1.5; font-style: italic; }
-  .kw-cloud { display: flex; flex-wrap: wrap; gap: 5px; }
-  .kw-chip { font-size: 11px; padding: 3px 9px; border-radius: 10px; background: var(--green-light); color: #27500A; border: 0.5px solid #97C459; }
-  .phase { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
-  .phase:last-child { margin-bottom: 0; }
-  .phase-badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; margin-top: 2px; }
-  .p1 { background: var(--amber-light); color: var(--amber); }
-  .p2 { background: var(--blue-light); color: var(--blue); }
-  .p3 { background: var(--green-light); color: var(--green); }
-  .phase p { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-  .phase p strong { font-weight: 500; color: var(--text); }
-  .rule { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
-  .rule:last-child { margin-bottom: 0; }
-  .rule-n { width: 20px; height: 20px; border-radius: 50%; background: var(--bg); font-size: 11px; font-weight: 500; color: var(--text-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
-  .rule p { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-  .rule p strong { font-weight: 500; color: var(--text); }
-
-  /* Paste post area */
-  .paste-area { padding: 10px 14px; border-bottom: 0.5px solid var(--border); background: var(--bg); flex-shrink: 0; }
-  .paste-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
-  .paste-row { display: flex; gap: 6px; }
-  .paste-input { flex: 1; font-size: 12px; padding: 6px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
-  .paste-input:focus { border-color: var(--border-strong); }
-  .paste-btn { font-size: 11px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm); border: none; background: var(--red); color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
-  .paste-btn i { font-size: 13px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E24B4A;--red-light:#FCEBEB;--red-mid:#F09595;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --bg:#F7F6F3;--surface:#FFFFFF;
+  --border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.14);
+  --text:#1A1A18;--text-2:#5A5A56;--text-3:#8A8A84;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.header{background:var(--surface);border-bottom:.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;height:56px;gap:12px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark i{color:#fff;font-size:15px}
+.logo-name{font-size:14px;font-weight:500}
+.logo-tag{font-size:11px;color:var(--text-3);margin-top:1px}
+.hspace{flex:1}
+.pill{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;border:.5px solid var(--border);background:var(--bg);color:var(--text-2);cursor:pointer;white-space:nowrap}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--text-3)}
+.pill.on .pill-dot{background:var(--green)}
+.pill.on{color:var(--green);border-color:#97C459;background:var(--green-light)}
+.icon-btn{width:32px;height:32px;border-radius:var(--radius-sm);border:.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2)}
+.icon-btn:hover{background:var(--bg)}
+.icon-btn i{font-size:15px}
+.nav{background:var(--surface);border-bottom:.5px solid var(--border);display:flex;padding:0 1.5rem;flex-shrink:0}
+.nav-tab{font-size:12px;padding:10px 14px;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;user-select:none}
+.nav-tab:hover{color:var(--text-2)}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--red);font-weight:500}
+.nav-tab i{font-size:14px}
+.nbadge{font-size:10px;font-weight:500;background:var(--red);color:#fff;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center}
+.body{display:flex;flex:1;overflow:hidden}
+.sidebar{width:200px;border-right:.5px solid var(--border);background:var(--surface);padding:1rem .75rem;overflow-y:auto;flex-shrink:0}
+.sidebar-label{font-size:10px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:0 6px;margin-bottom:6px}
+.sub-row{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:var(--radius-sm);cursor:pointer;margin-bottom:1px}
+.sub-row:hover{background:var(--bg)}
+.sub-row.active{background:var(--red-light)}
+.sub-row.active .sub-n{color:var(--red);font-weight:500}
+.sub-n{font-size:12px;color:var(--text-2)}
+.sub-c{font-size:10px;font-weight:500;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
+.sub-c.zero{background:var(--bg);color:var(--text-3)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.stats-bar{display:flex;gap:1px;background:var(--border);border-bottom:.5px solid var(--border);flex-shrink:0}
+.stat{flex:1;background:var(--surface);padding:10px 14px}
+.stat-n{font-size:20px;font-weight:500;color:var(--text);font-family:'DM Mono',monospace}
+.stat-l{font-size:11px;color:var(--text-3);margin-top:1px}
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:.5px solid var(--border);background:var(--surface);flex-shrink:0}
+.search-box{flex:1;position:relative}
+.search-box i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px;pointer-events:none}
+.search-box input{width:100%;padding:6px 10px 6px 30px;font-size:12px;border:.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.search-box input:focus{border-color:var(--border-strong)}
+.filter-btn{font-size:11px;font-weight:500;padding:5px 10px;border-radius:var(--radius-sm);border:.5px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px}
+.filter-btn:hover{background:var(--bg)}
+.filter-btn.on{background:var(--green-light);color:var(--green);border-color:#97C459}
+.filter-btn i{font-size:13px}
+.paste-area{padding:8px 12px;border-bottom:.5px solid var(--border);background:var(--bg);flex-shrink:0}
+.paste-label{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.paste-row{display:flex;gap:6px}
+.paste-input{flex:1;font-size:12px;padding:6px 10px;border:.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.paste-input:focus{border-color:var(--border-strong)}
+.paste-btn{font-size:11px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);border:none;background:var(--red);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.paste-btn i{font-size:13px}
+.split{display:flex;flex:1;overflow:hidden}
+.posts{flex:1;overflow-y:auto}
+.post-card{padding:12px 14px;border-bottom:.5px solid var(--border);cursor:pointer;background:var(--surface)}
+.post-card:hover{background:var(--bg)}
+.post-card.selected{background:var(--red-light)}
+.post-meta{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.post-sub{font-size:11px;font-weight:500;color:var(--red)}
+.post-age{font-size:11px;color:var(--text-3)}
+.score-badge{margin-left:auto;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px}
+.s-hi{background:var(--green-light);color:var(--green)}
+.s-med{background:var(--amber-light);color:var(--amber)}
+.s-lo{background:var(--bg);color:var(--text-3)}
+.post-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:4px}
+.post-snip{font-size:12px;color:var(--text-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post-foot{display:flex;align-items:center;gap:10px;margin-top:6px}
+.post-stat{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:3px}
+.post-stat i{font-size:12px}
+.stag{margin-left:auto;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px}
+.t-pending{background:var(--amber-light);color:var(--amber)}
+.t-drafted{background:var(--blue-light);color:var(--blue)}
+.t-posted{background:var(--green-light);color:var(--green)}
+.t-skipped{background:var(--bg);color:var(--text-3)}
+.detail{width:360px;border-left:.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:2rem;text-align:center}
+.detail-empty i{font-size:28px;color:var(--text-3)}
+.detail-empty p{font-size:12px;color:var(--text-3)}
+.detail-head{padding:14px;border-bottom:.5px solid var(--border);flex-shrink:0}
+.d-sub{font-size:11px;font-weight:500;color:var(--red);margin-bottom:4px}
+.d-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:6px}
+.d-body{font-size:12px;color:var(--text-2);line-height:1.6;margin-bottom:8px;max-height:80px;overflow-y:auto}
+.score-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.score-lbl{font-size:10px;color:var(--text-3);width:54px;flex-shrink:0}
+.score-track{flex:1;height:3px;background:var(--bg);border-radius:2px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+.score-fill.red{background:var(--red)}
+.score-fill.amber{background:#EF9F27}
+.score-val{font-size:11px;font-weight:500;color:var(--text);width:28px;text-align:right;font-family:'DM Mono',monospace}
+.d-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--blue);text-decoration:none;margin-top:6px}
+.d-link:hover{text-decoration:underline}
+.d-link i{font-size:12px}
+.reply-area{flex:1;display:flex;flex-direction:column;padding:12px 14px;overflow:hidden}
+.reply-lbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.reply-lbl span{font-size:11px;font-weight:500;color:var(--text-2)}
+.reply-lbl .rstatus{font-size:11px;color:var(--text-3)}
+textarea{flex:1;min-height:140px;font-size:12px;line-height:1.6;color:var(--text);background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;resize:none;font-family:'DM Sans',sans-serif;outline:none}
+textarea:focus{border-color:var(--border-strong)}
+.action-row{display:flex;gap:6px;margin-top:8px}
+.btn-draft{flex:1;font-size:12px;font-weight:500;padding:8px;border-radius:var(--radius-sm);border:.5px solid var(--border-strong);background:transparent;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-draft:hover{background:var(--bg)}
+.btn-draft i{font-size:13px}
+.btn-post{flex:1;font-size:12px;font-weight:500;padding:8px;border-radius:var(--radius-sm);border:none;background:var(--red);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-post:hover{opacity:.9}
+.btn-post i{font-size:13px}
+.btn-skip{font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);border:.5px solid var(--border);background:transparent;color:var(--text-3);cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-skip:hover{background:var(--bg)}
+.post-result{display:none;font-size:11px;margin-top:6px;padding:6px 10px;border-radius:var(--radius-sm)}
+.post-result.ok{background:var(--green-light);color:var(--green)}
+.post-result.err{background:var(--red-light);color:#A32D2D}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:3rem;text-align:center}
+.empty-state i{font-size:30px;color:var(--text-3)}
+.empty-state p{font-size:12px;color:var(--text-3);max-width:200px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+.loading-row{display:flex;align-items:center;gap:8px;padding:16px 14px;font-size:12px;color:var(--text-3)}
+/* Setup */
+.setup-view{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;max-width:680px}
+.setup-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.setup-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.step-dot{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.setup-card h3{font-size:13px;font-weight:500}
+.setup-card p{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:10px}
+.setup-input{width:100%;padding:7px 10px;font-size:12px;border:.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:6px;outline:none}
+.setup-input:focus{border-color:var(--border-strong)}
+.setup-row{display:flex;gap:6px}
+.setup-row .setup-input{flex:1;margin:0}
+.btn-primary{font-size:12px;font-weight:500;padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--red);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.btn-primary:hover{opacity:.9}
+.btn-primary i{font-size:14px}
+.btn-secondary{font-size:12px;font-weight:500;padding:8px 14px;border-radius:var(--radius-sm);border:.5px solid var(--border-strong);background:transparent;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.btn-secondary:hover{background:var(--bg)}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.kw-tag{font-size:11px;padding:3px 9px;border-radius:10px;border:.5px solid var(--border);background:var(--bg);color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:4px}
+.kw-tag.on{background:var(--red-light);color:#A32D2D;border-color:var(--red-mid)}
+.kw-tag i{font-size:10px}
+.cred-status{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:5px;margin-top:8px}
+.cred-status.ok{color:var(--green)}
+.cred-status.err{color:var(--red)}
+.phase-desc{font-size:12px;color:var(--text-2);line-height:1.5;padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm);margin-top:6px}
+/* Queue */
+.queue-view{flex:1;overflow-y:auto;padding:1.5rem}
+.queue-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:10px}
+.queue-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.queue-sub{font-size:11px;font-weight:500;color:var(--red)}
+.queue-draft{font-size:12px;color:var(--text-2);line-height:1.6;background:var(--bg);padding:10px 12px;border-radius:var(--radius-sm);margin-top:6px}
+.queue-time{font-size:11px;color:var(--text-3);margin-top:6px}
+/* Playbook */
+.playbook-view{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;max-width:680px}
+.pb-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem}
+.pb-card h3{font-size:10px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.sig{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:.5px solid var(--border)}
+.sig:last-child{border-bottom:none;padding-bottom:0}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.sdot.g{background:#639922}
+.sdot.r{background:var(--red)}
+.sdot.a{background:#EF9F27}
+.sig p{font-size:12px;color:var(--text-2);line-height:1.5}
+.sig p strong{font-weight:500;color:var(--text)}
+.ex{background:var(--bg);padding:8px 10px;margin-top:6px;border-left:2px solid #639922}
+.ex.bad{border-left-color:var(--red)}
+.ex-lbl{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.ex-txt{font-size:12px;color:var(--text);line-height:1.5;font-style:italic}
+.kw-cloud{display:flex;flex-wrap:wrap;gap:5px}
+.kw-chip{font-size:11px;padding:3px 9px;border-radius:10px;background:var(--green-light);color:#27500A;border:.5px solid #97C459}
+.phase-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.phase-row:last-child{margin-bottom:0}
+.pb-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;flex-shrink:0;margin-top:2px}
+.p1{background:var(--amber-light);color:var(--amber)}
+.p2{background:var(--blue-light);color:var(--blue)}
+.p3{background:var(--green-light);color:var(--green)}
+.phase-row p{font-size:12px;color:var(--text-2);line-height:1.5}
+.phase-row p strong{font-weight:500;color:var(--text)}
+.rule-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.rule-row:last-child{margin-bottom:0}
+.rule-n{width:20px;height:20px;border-radius:50%;background:var(--bg);font-size:11px;font-weight:500;color:var(--text-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rule-row p{font-size:12px;color:var(--text-2);line-height:1.5}
+.rule-row p strong{font-weight:500;color:var(--text)}
 </style>
 </head>
 <body>
-
 <div class="app">
 
   <!-- HEADER -->
@@ -535,32 +208,30 @@
       <div class="logo-mark"><i class="ti ti-activity-heartbeat"></i></div>
       <div>
         <div class="logo-name">RecoverAI · Reddit Monitor</div>
-        <div class="logo-tag">Daily opportunity finder</div>
+        <div class="logo-tag">Mon / Wed / Fri opportunity finder</div>
       </div>
     </div>
-    <div class="header-mid"></div>
-    <div class="header-right">
-      <div class="pill" id="phase-pill" style="cursor:pointer;" onclick="showView('setup')" title="Click to change phase">
-        <span id="phase-pill-icon">🟡</span>
-        <span id="phase-pill-text">Warmup mode</span>
-      </div>
-      <div class="pill" id="conn-pill">
-        <span class="pill-dot"></span>
-        <span id="conn-text">Not connected</span>
-      </div>
-      <button class="icon-btn" onclick="showView('setup')" title="Setup"><i class="ti ti-settings"></i></button>
+    <div class="hspace"></div>
+    <div class="pill" id="phase-pill" onclick="showView('setup')" title="Click to change phase">
+      <span id="phase-icon">🟡</span>
+      <span id="phase-text">Warmup mode</span>
     </div>
+    <div class="pill" id="conn-pill">
+      <span class="pill-dot"></span>
+      <span id="conn-text">No API key</span>
+    </div>
+    <button class="icon-btn" onclick="showView('setup')"><i class="ti ti-settings"></i></button>
   </div>
 
   <!-- NAV -->
   <div class="nav">
     <div class="nav-tab active" id="tab-monitor" onclick="showView('monitor')"><i class="ti ti-radar"></i> Monitor</div>
-    <div class="nav-tab" id="tab-queue" onclick="showView('queue')"><i class="ti ti-inbox"></i> Reply queue <span class="badge" id="queue-badge">0</span></div>
+    <div class="nav-tab" id="tab-queue" onclick="showView('queue')"><i class="ti ti-inbox"></i> Reply queue <span class="nbadge" id="qbadge">0</span></div>
     <div class="nav-tab" id="tab-playbook" onclick="showView('playbook')"><i class="ti ti-book"></i> Playbook</div>
     <div class="nav-tab" id="tab-setup" onclick="showView('setup')"><i class="ti ti-settings"></i> Setup</div>
   </div>
 
-  <!-- MONITOR VIEW -->
+  <!-- MONITOR -->
   <div id="view-monitor" class="body">
     <div class="sidebar">
       <div class="sidebar-label">Subreddits</div>
@@ -576,50 +247,50 @@
       <div class="toolbar">
         <div class="search-box">
           <i class="ti ti-search"></i>
-          <input type="text" placeholder="Search posts..." id="search-inp" oninput="renderPosts()" />
+          <input type="text" id="search-inp" placeholder="Search posts..." oninput="renderPosts()">
         </div>
         <button class="filter-btn" id="f-high" onclick="toggleFilter('high')"><i class="ti ti-flame"></i> High relevance</button>
         <button class="filter-btn" id="f-pending" onclick="toggleFilter('pending')"><i class="ti ti-clock"></i> Needs reply</button>
       </div>
       <div class="paste-area">
-        <div class="paste-label">Paste a post from Cowork / Reddit</div>
+        <div class="paste-label">Paste a post from Reddit</div>
         <div class="paste-row">
-          <input type="text" class="paste-input" id="paste-title" placeholder="Post title..." />
-          <input type="text" class="paste-input" id="paste-body" placeholder="Post body (paste first few sentences)..." />
-          <input type="text" class="paste-input" id="paste-sub" placeholder="Subreddit..." style="max-width:130px;" />
-          <button class="paste-btn" onclick="addManualPost()"><i class="ti ti-plus"></i> Add post</button>
+          <input type="text" class="paste-input" id="p-title" placeholder="Post title...">
+          <input type="text" class="paste-input" id="p-body" placeholder="Post body (first few sentences)...">
+          <input type="text" class="paste-input" id="p-sub" placeholder="Subreddit..." style="max-width:130px">
+          <button class="paste-btn" onclick="addPost()"><i class="ti ti-plus"></i> Add post</button>
         </div>
       </div>
       <div class="split">
         <div class="posts" id="posts-list"></div>
-        <div class="detail" id="detail-panel">
-          <div class="detail-empty" id="detail-empty">
+        <div class="detail">
+          <div class="detail-empty" id="d-empty">
             <i class="ti ti-cursor-text"></i>
             <p>Select a post to view details and draft a reply</p>
           </div>
-          <div id="detail-content" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+          <div id="d-content" style="display:none;flex-direction:column;height:100%;overflow:hidden">
             <div class="detail-head">
               <div class="d-sub" id="d-sub"></div>
               <div class="d-title" id="d-title"></div>
               <div class="d-body" id="d-body"></div>
               <div class="score-row">
                 <span class="score-lbl">Relevance</span>
-                <div class="score-track"><div class="score-fill red" id="d-rel-bar"></div></div>
-                <span class="score-val" id="d-rel-val"></span>
+                <div class="score-track"><div class="score-fill red" id="d-rel"></div></div>
+                <span class="score-val" id="d-rel-v"></span>
               </div>
               <div class="score-row">
                 <span class="score-lbl">Urgency</span>
-                <div class="score-track"><div class="score-fill amber" id="d-urg-bar"></div></div>
-                <span class="score-val" id="d-urg-val"></span>
+                <div class="score-track"><div class="score-fill amber" id="d-urg"></div></div>
+                <span class="score-val" id="d-urg-v"></span>
               </div>
               <a class="d-link" id="d-link" href="#" target="_blank"><i class="ti ti-external-link"></i> View on Reddit</a>
             </div>
             <div class="reply-area">
               <div class="reply-lbl">
                 <span>Reply draft</span>
-                <span class="status" id="reply-status"></span>
+                <span class="rstatus" id="r-status"></span>
               </div>
-              <textarea id="reply-ta" placeholder="Click 'Draft reply' to generate an AI response, or write your own..."></textarea>
+              <textarea id="reply-ta" placeholder="Click Draft reply to generate an AI response, or write your own..."></textarea>
               <div class="action-row">
                 <button class="btn-draft" id="btn-draft" onclick="draftReply()"><i class="ti ti-sparkles"></i> Draft reply</button>
                 <button class="btn-post" id="btn-post" onclick="postReply()"><i class="ti ti-send"></i> Post to Reddit</button>
@@ -633,268 +304,143 @@
     </div>
   </div>
 
-  <!-- QUEUE VIEW -->
-  <div id="view-queue" style="display:none;flex:1;overflow:hidden;">
-    <div class="queue-view" id="queue-list">
-      <div class="empty-state" id="queue-empty">
-        <i class="ti ti-inbox"></i>
-        <p>No replies drafted or posted yet</p>
-      </div>
-    </div>
+  <!-- QUEUE -->
+  <div id="view-queue" style="display:none;flex:1;overflow:hidden">
+    <div class="queue-view" id="queue-body"></div>
   </div>
 
-  <!-- PLAYBOOK VIEW -->
-  <div id="view-playbook" style="display:none;flex:1;overflow:hidden;">
+  <!-- PLAYBOOK -->
+  <div id="view-playbook" style="display:none;flex:1;overflow:hidden">
     <div class="playbook-view">
-
-      <div class="playbook-card">
+      <div class="pb-card">
         <h3>Reply to these — green light posts</h3>
-        <div class="signal">
-          <div class="sdot g"></div>
-          <div>
-            <p><strong>The "what should I do?" post</strong> — someone describing an injury and asking what exercises or steps to take at home</p>
-            <div class="ex-box"><div class="ex-label">Example</div><div class="ex-text">"Hurt my knee 2 weeks ago, doctor said rest but it's still sore. What exercises can I do to start rehabbing it at home?"</div></div>
-          </div>
-        </div>
-        <div class="signal">
-          <div class="sdot g"></div>
-          <div>
-            <p><strong>The frustrated recovery post</strong> — stuck in recovery, not progressing, or can't afford to keep seeing a physio</p>
-            <div class="ex-box"><div class="ex-label">Example</div><div class="ex-text">"Been dealing with this IT band issue for 3 months. Physio is too expensive to keep going. Feels like I'm just guessing."</div></div>
-          </div>
-        </div>
-        <div class="signal">
-          <div class="sdot g"></div>
-          <div>
-            <p><strong>The "can I still train?" post</strong> — injured person asking what they can safely do without making it worse</p>
-            <div class="ex-box"><div class="ex-label">Example</div><div class="ex-text">"Pulled my hamstring. Can I still do upper body? What low impact stuff won't set me back?"</div></div>
-          </div>
-        </div>
-        <div class="signal">
-          <div class="sdot g"></div>
-          <div>
-            <p><strong>The "how long will this take?" post</strong> — anxious about recovery timeline, often with a race or event coming up</p>
-            <div class="ex-box"><div class="ex-label">Example</div><div class="ex-text">"Sprained my ankle badly. How long until I can run again? I have a half marathon in 8 weeks."</div></div>
-          </div>
-        </div>
+        <div class="sig"><div class="sdot g"></div><div><p><strong>The "what should I do?" post</strong> — someone describing an injury and asking what exercises or steps to take at home</p><div class="ex"><div class="ex-lbl">Example</div><div class="ex-txt">"Hurt my knee 2 weeks ago, doctor said rest but it's still sore. What exercises can I do to start rehabbing it at home?"</div></div></div></div>
+        <div class="sig"><div class="sdot g"></div><div><p><strong>The frustrated recovery post</strong> — stuck in recovery, not progressing, or can't afford to keep seeing a physio</p><div class="ex"><div class="ex-lbl">Example</div><div class="ex-txt">"Been dealing with this IT band issue for 3 months. Physio is too expensive to keep going. Feels like I'm just guessing."</div></div></div></div>
+        <div class="sig"><div class="sdot g"></div><div><p><strong>The "can I still train?" post</strong> — injured person asking what they can safely do without making it worse</p><div class="ex"><div class="ex-lbl">Example</div><div class="ex-txt">"Pulled my hamstring. Can I still do upper body? What low impact stuff won't set me back?"</div></div></div></div>
+        <div class="sig"><div class="sdot g"></div><div><p><strong>The "how long will this take?" post</strong> — anxious about recovery timeline, often with a race or event coming up</p><div class="ex"><div class="ex-lbl">Example</div><div class="ex-txt">"Sprained my ankle badly. How long until I can run again? I have a half marathon in 8 weeks."</div></div></div></div>
       </div>
-
-      <div class="playbook-card">
+      <div class="pb-card">
         <h3>Skip these — red light posts</h3>
-        <div class="signal">
-          <div class="sdot r"></div>
-          <p><strong>Posts already answered well</strong> — jumping in late adds no value and looks desperate</p>
-        </div>
-        <div class="signal">
-          <div class="sdot r"></div>
-          <p><strong>Serious medical questions</strong> — "could this be a fracture / do I need surgery?" — never give medical advice, just suggest they see a professional</p>
-        </div>
-        <div class="signal">
-          <div class="sdot r"></div>
-          <p><strong>Posts with active arguments or drama</strong> — getting involved in conflict threads does nothing for your reputation</p>
-        </div>
-        <div class="signal">
-          <div class="sdot r"></div>
-          <p><strong>Meme or off-topic posts</strong> — don't reply to non-injury content just to inflate your post count</p>
-        </div>
+        <div class="sig"><div class="sdot r"></div><p><strong>Posts already answered well</strong> — jumping in late adds no value and looks desperate</p></div>
+        <div class="sig"><div class="sdot r"></div><p><strong>Serious medical questions</strong> — "could this be a fracture / do I need surgery?" — never give medical advice, just suggest they see a professional</p></div>
+        <div class="sig"><div class="sdot r"></div><p><strong>Posts with active arguments or drama</strong> — getting involved in conflict threads does nothing for your reputation</p></div>
+        <div class="sig"><div class="sdot r"></div><p><strong>Meme or off-topic posts</strong> — don't reply to non-injury content just to inflate your post count</p></div>
       </div>
-
-      <div class="playbook-card">
+      <div class="pb-card">
         <h3>Keywords to search daily in each subreddit</h3>
         <div class="kw-cloud">
-          <span class="kw-chip">can't run</span><span class="kw-chip">injury help</span><span class="kw-chip">rehab exercises</span><span class="kw-chip">knee pain</span><span class="kw-chip">physio too expensive</span><span class="kw-chip">recovery plan</span><span class="kw-chip">IT band</span><span class="kw-chip">shin splints</span><span class="kw-chip">plantar fasciitis</span><span class="kw-chip">shoulder pain</span><span class="kw-chip">what exercises</span><span class="kw-chip">back pain</span><span class="kw-chip">at home rehab</span><span class="kw-chip">how long to recover</span><span class="kw-chip">still train</span><span class="kw-chip">physical therapy</span><span class="kw-chip">physio</span><span class="kw-chip">ROM</span><span class="kw-chip">range of motion</span>
+          <span class="kw-chip">can't run</span><span class="kw-chip">injury help</span><span class="kw-chip">rehab exercises</span><span class="kw-chip">knee pain</span><span class="kw-chip">physio too expensive</span><span class="kw-chip">recovery plan</span><span class="kw-chip">IT band</span><span class="kw-chip">shin splints</span><span class="kw-chip">plantar fasciitis</span><span class="kw-chip">shoulder pain</span><span class="kw-chip">what exercises</span><span class="kw-chip">back pain</span><span class="kw-chip">at home rehab</span><span class="kw-chip">how long to recover</span><span class="kw-chip">still train</span><span class="kw-chip">physical therapy</span><span class="kw-chip">physio</span><span class="kw-chip">ROM</span>
         </div>
       </div>
-
-      <div class="playbook-card">
+      <div class="pb-card">
         <h3>When to mention RecoverAI</h3>
-        <div class="phase">
-          <span class="phase-badge p1">Week 1–2</span>
-          <p><strong>Never mention it.</strong> Just be helpful. Answer questions with real advice. Build karma and posting history so your account looks legitimate.</p>
-        </div>
-        <div class="phase">
-          <span class="phase-badge p2">Week 3–4</span>
-          <p><strong>Mention only when it fits perfectly.</strong> Frame it as something you're building — "I've actually been working on an app for exactly this problem if you're curious."</p>
-        </div>
-        <div class="phase">
-          <span class="phase-badge p3">Week 5+</span>
-          <p><strong>Drop it naturally in high-fit posts.</strong> By now you have karma and history. A brief mention in a genuinely helpful reply reads as a recommendation, not spam.</p>
-        </div>
+        <div class="phase-row"><span class="pb-badge p1">Week 1–2</span><p><strong>Never mention it.</strong> Just be helpful. Build karma and posting history so your account looks legitimate. Change Setup to 🟡 Warmup.</p></div>
+        <div class="phase-row"><span class="pb-badge p2">Week 3–4</span><p><strong>Mention only when it fits perfectly.</strong> Frame it as something you're building — "I've actually been working on an app for exactly this." Change Setup to 🔵 Soft intro.</p></div>
+        <div class="phase-row"><span class="pb-badge p3">Week 5+</span><p><strong>Drop it naturally in high-fit posts.</strong> You have karma and history now. A brief mention in a helpful reply reads as a recommendation not spam. Change Setup to 🟢 Normal.</p></div>
       </div>
-
-      <div class="playbook-card">
+      <div class="pb-card">
         <h3>5 rules that keep you from getting banned</h3>
-        <div class="rule"><div class="rule-n">1</div><p><strong>Always lead with value.</strong> Your reply must be genuinely useful even if you remove the app mention entirely.</p></div>
-        <div class="rule"><div class="rule-n">2</div><p><strong>Never post the same reply twice.</strong> Every reply must be written fresh for that specific post and person.</p></div>
-        <div class="rule"><div class="rule-n">3</div><p><strong>Max one app mention per reply, ever.</strong> One sentence, framed as a discovery not a pitch. If in doubt, leave it out.</p></div>
-        <div class="rule"><div class="rule-n">4</div><p><strong>Don't reply to many posts in one session.</strong> Space out your activity. A brand new account replying to 10 posts in an hour is a ban trigger.</p></div>
-        <div class="rule"><div class="rule-n">5</div><p><strong>Engage back if people reply to you.</strong> The conversation that follows is where real trust — and downloads — come from.</p></div>
+        <div class="rule-row"><div class="rule-n">1</div><p><strong>Always lead with value.</strong> Your reply must be genuinely useful even if you remove the app mention entirely.</p></div>
+        <div class="rule-row"><div class="rule-n">2</div><p><strong>Never post the same reply twice.</strong> Every reply must be written fresh for that specific post and person.</p></div>
+        <div class="rule-row"><div class="rule-n">3</div><p><strong>Max one app mention per reply, ever.</strong> One sentence, framed as a discovery not a pitch. If in doubt, leave it out.</p></div>
+        <div class="rule-row"><div class="rule-n">4</div><p><strong>Don't reply to many posts in one session.</strong> Space out your activity — a new account replying to 10 posts in an hour is a ban trigger.</p></div>
+        <div class="rule-row"><div class="rule-n">5</div><p><strong>Engage back if people reply to you.</strong> The conversation that follows is where real trust and downloads come from.</p></div>
       </div>
-
     </div>
   </div>
 
-  <!-- SETUP VIEW -->
-  <div id="view-setup" style="display:none;flex:1;overflow:hidden;">
+  <!-- SETUP -->
+  <div id="view-setup" style="display:none;flex:1;overflow:hidden">
     <div class="setup-view">
 
       <div class="setup-card">
         <div class="setup-head"><div class="step-dot">1</div><h3>Anthropic API key</h3></div>
-        <p>Required for AI reply drafting. Get yours at <a href="https://console.anthropic.com" style="color:var(--blue)">console.anthropic.com</a>. Your key is stored locally in your browser only.</p>
-        <input class="setup-input" type="password" id="api-key-inp" placeholder="sk-ant-..." />
+        <p>Required for AI reply drafting. Get yours free at <a href="https://console.anthropic.com" style="color:var(--blue)" target="_blank">console.anthropic.com</a>. Stored locally in your browser only — never sent anywhere except Anthropic.</p>
+        <input class="setup-input" type="password" id="api-key-inp" placeholder="sk-ant-...">
         <button class="btn-primary" onclick="saveApiKey()"><i class="ti ti-check"></i> Save key</button>
         <div class="cred-status" id="key-status"></div>
       </div>
 
       <div class="setup-card">
         <div class="setup-head"><div class="step-dot">2</div><h3>Warmup phase</h3></div>
-        <p>Controls how the AI drafts replies. During warmup, replies focus purely on being helpful with zero app mentions. Set this to match where you are in your Reddit journey.</p>
-        <select class="setup-input" id="warmup-phase" onchange="savePhase()" style="margin-bottom:10px;">
-          <option value="warmup">🟡 Warmup (Week 1–2) — helpful only, no app mention</option>
+        <p>Controls how the AI drafts replies. Start on Warmup and advance manually every two weeks. Current phase shows in the header.</p>
+        <select class="setup-input" id="phase-select" onchange="savePhase()">
+          <option value="warmup">🟡 Warmup (Week 1–2) — helpful only, zero app mention</option>
           <option value="soft">🔵 Soft intro (Week 3–4) — mention app only when perfect fit</option>
           <option value="normal">🟢 Normal (Week 5+) — natural mentions in relevant posts</option>
         </select>
-        <div id="phase-desc" style="font-size:12px;color:var(--text-2);line-height:1.5;padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm);"></div>
+        <div class="phase-desc" id="phase-desc"></div>
       </div>
 
       <div class="setup-card">
-        <div class="setup-head"><div class="step-dot">2</div><h3>Subreddits to monitor</h3></div>
+        <div class="setup-head"><div class="step-dot">3</div><h3>Subreddits to monitor</h3></div>
         <p>Your 3 target subreddits are pre-loaded. Add or remove as needed.</p>
         <div id="sub-tags" class="tag-wrap"></div>
-        <div class="setup-row" style="margin-top:10px;">
-          <input class="setup-input" type="text" id="new-sub-inp" placeholder="Add subreddit name..." />
+        <div class="setup-row" style="margin-top:10px">
+          <input class="setup-input" type="text" id="new-sub" placeholder="Add subreddit name...">
           <button class="btn-secondary" onclick="addSub()">Add</button>
         </div>
       </div>
 
       <div class="setup-card">
-        <div class="setup-head"><div class="step-dot">3</div><h3>App context for AI drafts</h3></div>
-        <p>This is what the AI knows about RecoverAI when writing replies for you.</p>
-        <textarea class="setup-input" id="app-ctx" rows="4" style="resize:none;line-height:1.5;">RecoverAI is an AI-guided movement and recovery iOS app. It uses the Anthropic API to generate personalised, PT-informed exercise and rehab plans based on the user's specific injury, pain location, and movement limitations. Built for people who can't easily access a physio or want guided recovery at home. Free trial available.</textarea>
+        <div class="setup-head"><div class="step-dot">4</div><h3>App context for AI drafts</h3></div>
+        <p>What the AI knows about RecoverAI when writing replies for you.</p>
+        <textarea class="setup-input" id="app-ctx" rows="4" style="resize:none;line-height:1.5">RecoverAI is an AI-guided movement and recovery iOS app. It uses the Anthropic API to generate personalised, PT-informed exercise and rehab plans based on the user's specific injury, pain location, and movement limitations. Built for people who can't easily access a physio or want guided recovery at home. Free trial available.</textarea>
       </div>
 
-      <button class="btn-primary" style="align-self:flex-start;padding:10px 20px;font-size:13px;" onclick="runScan()">
-        <i class="ti ti-radar"></i> Scan subreddits now
+      <button class="btn-primary" style="align-self:flex-start;padding:10px 20px;font-size:13px" onclick="runScan()">
+        <i class="ti ti-radar"></i> Populate with example posts
       </button>
-      <p style="font-size:11px;color:var(--text-3);margin-top:-6px;">Simulates a scan and populates the monitor with realistic example posts so you can see the full workflow.</p>
+      <p style="font-size:11px;color:var(--text-3);margin-top:-6px">Fills the monitor with realistic example posts so you can test the full draft → post workflow before adding real ones.</p>
 
     </div>
   </div>
 
 </div>
-
 <script>
-const DEFAULT_SUBS = ['running','physicaltherapy','Fitness'];
-const DEFAULT_KW = ['recovery','rehab','rehabilitation','exercise plan','physio','physical therapy','pain relief','injury','sore','ROM','range of motion','stretching','movement','heal','back pain','knee pain','shoulder pain','hip pain','PT exercises','recovery plan','post surgery','torn','strain','sprain','at home rehab','can\'t run','shin splints','IT band','plantar fasciitis'];
+var DEFAULT_SUBS = ['running','physicaltherapy','Fitness'];
 
-let S = {
-  apiKey: localStorage.getItem('rai_apikey') || '',
+var S = {
+  apiKey: localStorage.getItem('rai_key') || '',
   subs: JSON.parse(localStorage.getItem('rai_subs') || JSON.stringify(DEFAULT_SUBS)),
   appCtx: localStorage.getItem('rai_ctx') || '',
   posts: JSON.parse(localStorage.getItem('rai_posts') || '[]'),
   queue: JSON.parse(localStorage.getItem('rai_queue') || '[]'),
   phase: localStorage.getItem('rai_phase') || 'warmup',
-  selectedId: null,
-  selectedSub: 'all',
-  filters: { high: false, pending: false },
-  currentView: 'monitor'
+  selId: null,
+  selSub: 'all',
+  filters: { high: false, pending: false }
 };
 
 function save() {
-  localStorage.setItem('rai_apikey', S.apiKey);
+  localStorage.setItem('rai_key', S.apiKey);
   localStorage.setItem('rai_subs', JSON.stringify(S.subs));
   localStorage.setItem('rai_posts', JSON.stringify(S.posts));
   localStorage.setItem('rai_queue', JSON.stringify(S.queue));
+  localStorage.setItem('rai_ctx', S.appCtx);
+  localStorage.setItem('rai_phase', S.phase);
 }
 
 function showView(v) {
-  ['monitor','queue','playbook','setup'].forEach(x => {
-    const el = document.getElementById('view-'+x);
-    if(el) el.style.display = 'none';
-    const tab = document.getElementById('tab-'+x);
-    if(tab) tab.classList.remove('active');
+  var views = ['monitor','queue','playbook','setup'];
+  views.forEach(function(x) {
+    var el = document.getElementById('view-'+x);
+    if (el) el.style.display = 'none';
+    var tab = document.getElementById('tab-'+x);
+    if (tab) tab.classList.remove('active');
   });
-  const target = document.getElementById('view-'+v);
-  if(target) target.style.display = v === 'monitor' ? 'flex' : 'block';
-  const tab = document.getElementById('tab-'+v);
-  if(tab) tab.classList.add('active');
-  S.currentView = v;
-  if(v === 'queue') renderQueue();
-  if(v === 'setup') renderSetup();
+  var target = document.getElementById('view-'+v);
+  if (target) target.style.display = v === 'monitor' ? 'flex' : 'block';
+  var tab = document.getElementById('tab-'+v);
+  if (tab) tab.classList.add('active');
+  if (v === 'queue') renderQueue();
+  if (v === 'setup') renderSetup();
 }
 
-function savePhase() {
-  S.phase = document.getElementById('warmup-phase').value;
-  localStorage.setItem('rai_phase', S.phase);
-  updatePhasePill();
-  updatePhaseDesc();
-}
-
-function updatePhasePill() {
-  const map = {
-    warmup: { icon: '🟡', text: 'Warmup mode' },
-    soft:   { icon: '🔵', text: 'Soft intro mode' },
-    normal: { icon: '🟢', text: 'Normal mode' }
-  };
-  const m = map[S.phase] || map.warmup;
-  document.getElementById('phase-pill-icon').textContent = m.icon;
-  document.getElementById('phase-pill-text').textContent = m.text;
-}
-
-function updatePhaseDesc() {
-  const el = document.getElementById('phase-desc');
-  if(!el) return;
-  const map = {
-    warmup: '🟡 <strong>Warmup (Week 1–2):</strong> Replies are purely helpful — real advice, empathetic tone, zero mention of RecoverAI. Goal is to build karma and look like a genuine community member.',
-    soft:   '🔵 <strong>Soft intro (Week 3–4):</strong> Still leads with real advice. Mentions RecoverAI only when it fits naturally — framed as "I\'ve been building something for this" not a pitch. Skipped if it doesn\'t fit perfectly.',
-    normal: '🟢 <strong>Normal (Week 5+):</strong> Helpful reply first, then a natural one-line mention of RecoverAI where relevant. Account has enough history to include it without looking suspicious.'
-  };
-  el.innerHTML = map[S.phase] || map.warmup;
-}
-
-function getPhasePrompt(p, ctx) {
-  const base = `You are helping the founder of RecoverAI engage authentically on Reddit.
-
-App context: ${ctx}
-
-Reddit post from r/${p.sub}:
-Title: ${p.title}
-Body: ${p.body}
-
-`;
-  if(S.phase === 'warmup') {
-    return base + `Write a Reddit reply following these STRICT warmup rules:
-1. Be genuinely helpful — give real, specific advice that answers their actual problem
-2. Sound like a normal person who has experience with this topic. Casual, empathetic, direct.
-3. DO NOT mention RecoverAI, any app, or anything you are building. Not even a hint.
-4. This is purely about building trust and credibility as a helpful community member.
-5. 80–150 words. No bullet points. No headers. Conversational prose only.
-
-Only return the reply text, nothing else.`;
-  }
-  if(S.phase === 'soft') {
-    return base + `Write a Reddit reply following these soft intro rules:
-1. Lead with genuine, specific helpful advice that fully addresses their problem
-2. Sound like a normal person — casual, empathetic, not salesy at all
-3. Only if it fits PERFECTLY and naturally, add ONE sentence at the end mentioning you've been building an app for exactly this problem — phrased like "I've actually been building something for this exact issue if you're curious, it's called RecoverAI" — never pushy
-4. If the app mention doesn't fit naturally, leave it out entirely. When in doubt, leave it out.
-5. 80–160 words. No bullet points. No headers. Conversational prose only.
-
-Only return the reply text, nothing else.`;
-  }
-  // normal
-  return base + `Write a Reddit reply following these rules:
-1. Lead with genuinely helpful, specific advice that answers their actual problem
-2. Sound like a normal person — casual, empathetic, not a marketer
-3. Where relevant, naturally mention RecoverAI in one sentence — frame it as something you built for this exact problem, not a pitch. E.g. "I actually built an app called RecoverAI for exactly this — it generates a personalised rehab plan based on your specific injury."
-4. If it doesn't fit naturally, leave it out
-5. 80–160 words. No bullet points. No headers. Conversational prose only.
-
-Only return the reply text, nothing else.`;
-}
-  const val = document.getElementById('api-key-inp').value.trim();
-  const el = document.getElementById('key-status');
-  if(!val.startsWith('sk-ant-') && val.length < 10) {
+function saveApiKey() {
+  var val = document.getElementById('api-key-inp').value.trim();
+  var el = document.getElementById('key-status');
+  if (!val || val.length < 10) {
     el.className = 'cred-status err';
     el.innerHTML = '<i class="ti ti-alert-circle"></i> Doesn\'t look like a valid key';
     return;
@@ -907,37 +453,77 @@ Only return the reply text, nothing else.`;
 }
 
 function updateConnPill(on) {
-  const pill = document.getElementById('conn-pill');
-  const txt = document.getElementById('conn-text');
-  if(on) { pill.classList.add('connected'); txt.textContent = 'API key set'; }
-  else { pill.classList.remove('connected'); txt.textContent = 'No API key'; }
+  var pill = document.getElementById('conn-pill');
+  var txt = document.getElementById('conn-text');
+  if (on) {
+    pill.classList.add('on');
+    txt.textContent = 'API key set';
+  } else {
+    pill.classList.remove('on');
+    txt.textContent = 'No API key';
+  }
+}
+
+function savePhase() {
+  S.phase = document.getElementById('phase-select').value;
+  save();
+  updatePhasePill();
+  updatePhaseDesc();
+}
+
+function updatePhasePill() {
+  var map = {
+    warmup: { icon: '🟡', text: 'Warmup mode' },
+    soft:   { icon: '🔵', text: 'Soft intro mode' },
+    normal: { icon: '🟢', text: 'Normal mode' }
+  };
+  var m = map[S.phase] || map['warmup'];
+  document.getElementById('phase-icon').textContent = m.icon;
+  document.getElementById('phase-text').textContent = m.text;
+}
+
+function updatePhaseDesc() {
+  var el = document.getElementById('phase-desc');
+  if (!el) return;
+  var map = {
+    warmup: '🟡 <strong>Warmup (Week 1–2):</strong> Replies are purely helpful — real advice, empathetic tone, zero mention of RecoverAI. Goal is to build karma and look like a genuine community member.',
+    soft:   '🔵 <strong>Soft intro (Week 3–4):</strong> Still leads with real advice. Mentions RecoverAI only when it fits naturally — framed as "I\'ve been building something for this." Skipped if it doesn\'t fit perfectly.',
+    normal: '🟢 <strong>Normal (Week 5+):</strong> Helpful reply first, then a natural one-line mention of RecoverAI where relevant. Account has enough history to include it without looking suspicious.'
+  };
+  el.innerHTML = map[S.phase] || map['warmup'];
 }
 
 function renderSetup() {
-  if(S.apiKey) { document.getElementById('api-key-inp').value = S.apiKey; updateConnPill(true); }
-  const ctx = document.getElementById('app-ctx');
-  if(S.appCtx) ctx.value = S.appCtx;
-  const phaseEl = document.getElementById('warmup-phase');
-  if(phaseEl) { phaseEl.value = S.phase; }
+  if (S.apiKey) {
+    document.getElementById('api-key-inp').value = S.apiKey;
+    updateConnPill(true);
+  }
+  var ctx = document.getElementById('app-ctx');
+  if (S.appCtx && ctx) ctx.value = S.appCtx;
+  var ps = document.getElementById('phase-select');
+  if (ps) ps.value = S.phase;
   updatePhaseDesc();
   renderSubTags();
 }
 
 function renderSubTags() {
-  const el = document.getElementById('sub-tags');
-  if(!el) return;
-  el.innerHTML = S.subs.map(s =>
-    `<span class="kw-tag on" onclick="removeSub('${s}')">r/${s} <i class="ti ti-x"></i></span>`
-  ).join('');
+  var el = document.getElementById('sub-tags');
+  if (!el) return;
+  el.innerHTML = S.subs.map(function(s) {
+    return '<span class="kw-tag on" onclick="removeSub(\'' + s + '\')">r/' + s + ' <i class="ti ti-x"></i></span>';
+  }).join('');
 }
 
 function addSub() {
-  const v = document.getElementById('new-sub-inp').value.trim().replace(/^r\//,'');
-  if(v && !S.subs.includes(v)) { S.subs.push(v); save(); renderSubTags(); renderSidebar(); }
-  document.getElementById('new-sub-inp').value = '';
+  var v = document.getElementById('new-sub').value.trim().replace(/^r\//, '');
+  if (v && S.subs.indexOf(v) === -1) { S.subs.push(v); save(); renderSubTags(); renderSidebar(); }
+  document.getElementById('new-sub').value = '';
 }
 
-function removeSub(s) { S.subs = S.subs.filter(x => x !== s); save(); renderSubTags(); renderSidebar(); }
+function removeSub(s) {
+  S.subs = S.subs.filter(function(x) { return x !== s; });
+  save(); renderSubTags(); renderSidebar();
+}
 
 function toggleFilter(f) {
   S.filters[f] = !S.filters[f];
@@ -946,123 +532,123 @@ function toggleFilter(f) {
 }
 
 function renderSidebar() {
-  const counts = {};
-  S.subs.forEach(s => counts[s] = S.posts.filter(p => p.sub === s).length);
-  const el = document.getElementById('sub-list');
-  el.innerHTML = ['all', ...S.subs].map(s => {
-    const n = s === 'all' ? S.posts.length : (counts[s] || 0);
-    return `<div class="sub-row ${S.selectedSub === s ? 'active' : ''}" onclick="filterSub('${s}')">
-      <span class="sub-n">${s === 'all' ? 'All' : 'r/'+s}</span>
-      <span class="sub-c ${n===0?'zero':''}">${n}</span>
-    </div>`;
+  var el = document.getElementById('sub-list');
+  var all = ['all'].concat(S.subs);
+  el.innerHTML = all.map(function(s) {
+    var n = s === 'all' ? S.posts.length : S.posts.filter(function(p) { return p.sub === s; }).length;
+    return '<div class="sub-row ' + (S.selSub === s ? 'active' : '') + '" onclick="filterSub(\'' + s + '\')">' +
+      '<span class="sub-n">' + (s === 'all' ? 'All' : 'r/'+s) + '</span>' +
+      '<span class="sub-c ' + (n === 0 ? 'zero' : '') + '">' + n + '</span></div>';
   }).join('');
 }
 
-function filterSub(s) { S.selectedSub = s; renderSidebar(); renderPosts(); }
+function filterSub(s) { S.selSub = s; renderSidebar(); renderPosts(); }
 
 function getFiltered() {
-  const q = document.getElementById('search-inp').value.toLowerCase();
-  return S.posts.filter(p => {
-    if(S.selectedSub !== 'all' && p.sub !== S.selectedSub) return false;
-    if(S.filters.high && p.relevance < 70) return false;
-    if(S.filters.pending && p.status !== 'pending') return false;
-    if(q && !p.title.toLowerCase().includes(q) && !p.body.toLowerCase().includes(q)) return false;
+  var q = document.getElementById('search-inp').value.toLowerCase();
+  return S.posts.filter(function(p) {
+    if (S.selSub !== 'all' && p.sub !== S.selSub) return false;
+    if (S.filters.high && p.relevance < 70) return false;
+    if (S.filters.pending && p.status !== 'pending') return false;
+    if (q && p.title.toLowerCase().indexOf(q) === -1 && p.body.toLowerCase().indexOf(q) === -1) return false;
     return true;
   });
 }
 
 function renderPosts() {
-  const posts = getFiltered();
-  const el = document.getElementById('posts-list');
-  if(posts.length === 0) {
-    el.innerHTML = `<div class="empty-state"><i class="ti ti-zoom-question"></i><p>${S.posts.length === 0 ? 'No posts yet — run a scan from Setup or paste a post above' : 'No posts match these filters'}</p></div>`;
+  var posts = getFiltered();
+  var el = document.getElementById('posts-list');
+  if (posts.length === 0) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-zoom-question"></i><p>' + (S.posts.length === 0 ? 'No posts yet — paste a post above or use the Setup tab to load examples' : 'No posts match these filters') + '</p></div>';
   } else {
-    el.innerHTML = posts.map(p => {
-      const sc = p.relevance >= 75 ? 'score-hi' : p.relevance >= 50 ? 'score-med' : 'score-lo';
-      const tmap = {pending:'t-pending',drafted:'t-drafted',posted:'t-posted',skipped:'t-skipped'};
-      const tlabel = {pending:'Needs reply',drafted:'Draft ready',posted:'Posted',skipped:'Skipped'};
-      return `<div class="post-card ${S.selectedId === p.id ? 'selected' : ''}" onclick="selectPost('${p.id}')">
-        <div class="post-meta">
-          <span class="post-sub">r/${p.sub}</span>
-          <span class="post-age">${p.age}</span>
-          <span class="score-badge ${sc}">${p.relevance}% match</span>
-        </div>
-        <div class="post-title">${p.title}</div>
-        <div class="post-snip">${p.body}</div>
-        <div class="post-foot">
-          <span class="post-stat"><i class="ti ti-arrow-up"></i>${p.upvotes}</span>
-          <span class="post-stat"><i class="ti ti-message"></i>${p.comments}</span>
-          <span class="status-tag ${tmap[p.status]}">${tlabel[p.status]}</span>
-        </div>
-      </div>`;
+    el.innerHTML = posts.map(function(p) {
+      var sc = p.relevance >= 75 ? 's-hi' : p.relevance >= 50 ? 's-med' : 's-lo';
+      var tc = 't-' + p.status;
+      var tl = {pending:'Needs reply',drafted:'Draft ready',posted:'Posted',skipped:'Skipped'}[p.status];
+      return '<div class="post-card ' + (S.selId === p.id ? 'selected' : '') + '" onclick="selectPost(\'' + p.id + '\')">' +
+        '<div class="post-meta"><span class="post-sub">r/' + p.sub + '</span><span class="post-age">' + p.age + '</span><span class="score-badge ' + sc + '">' + p.relevance + '% match</span></div>' +
+        '<div class="post-title">' + p.title + '</div>' +
+        '<div class="post-snip">' + p.body + '</div>' +
+        '<div class="post-foot"><span class="post-stat"><i class="ti ti-arrow-up"></i>' + p.upvotes + '</span><span class="post-stat"><i class="ti ti-message"></i>' + p.comments + '</span><span class="stag ' + tc + '">' + tl + '</span></div></div>';
     }).join('');
   }
   updateStats();
 }
 
 function selectPost(id) {
-  S.selectedId = id;
-  const p = S.posts.find(x => x.id === id);
-  if(!p) return;
+  S.selId = id;
+  var p = S.posts.find(function(x) { return x.id === id; });
+  if (!p) return;
   renderPosts();
-  document.getElementById('detail-empty').style.display = 'none';
-  const dc = document.getElementById('detail-content');
+  document.getElementById('d-empty').style.display = 'none';
+  var dc = document.getElementById('d-content');
   dc.style.display = 'flex';
   document.getElementById('d-sub').textContent = 'r/' + p.sub;
   document.getElementById('d-title').textContent = p.title;
   document.getElementById('d-body').textContent = p.body;
-  document.getElementById('d-rel-bar').style.width = p.relevance + '%';
-  document.getElementById('d-rel-val').textContent = p.relevance + '%';
-  document.getElementById('d-urg-bar').style.width = p.urgency + '%';
-  document.getElementById('d-urg-val').textContent = p.urgency + '%';
-  const link = document.getElementById('d-link');
+  document.getElementById('d-rel').style.width = p.relevance + '%';
+  document.getElementById('d-rel-v').textContent = p.relevance + '%';
+  document.getElementById('d-urg').style.width = p.urgency + '%';
+  document.getElementById('d-urg-v').textContent = p.urgency + '%';
+  var link = document.getElementById('d-link');
   link.href = p.url || '#';
-  link.style.display = p.url && p.url !== '#' ? 'inline-flex' : 'none';
+  link.style.display = (p.url && p.url !== '#') ? 'inline-flex' : 'none';
   document.getElementById('reply-ta').value = p.draft || '';
-  document.getElementById('reply-status').textContent = p.status === 'posted' ? '✓ Posted' : p.status === 'drafted' ? 'Draft ready' : '';
+  document.getElementById('r-status').textContent = p.status === 'posted' ? '✓ Posted' : p.status === 'drafted' ? 'Draft ready' : '';
   document.getElementById('post-result').style.display = 'none';
 }
 
 function updateStats() {
   document.getElementById('s-found').textContent = S.posts.length;
-  document.getElementById('s-drafted').textContent = S.posts.filter(p => p.status === 'drafted').length;
-  document.getElementById('s-posted').textContent = S.posts.filter(p => p.status === 'posted').length;
-  const avg = S.posts.length ? Math.round(S.posts.reduce((a,p) => a + p.relevance, 0) / S.posts.length) : 0;
+  document.getElementById('s-drafted').textContent = S.posts.filter(function(p) { return p.status === 'drafted'; }).length;
+  document.getElementById('s-posted').textContent = S.posts.filter(function(p) { return p.status === 'posted'; }).length;
+  var avg = S.posts.length ? Math.round(S.posts.reduce(function(a,p) { return a + p.relevance; }, 0) / S.posts.length) : 0;
   document.getElementById('s-avg').textContent = S.posts.length ? avg + '%' : '—';
-  document.getElementById('queue-badge').textContent = S.posts.filter(p => p.status === 'drafted' || p.status === 'posted').length;
+  document.getElementById('qbadge').textContent = S.posts.filter(function(p) { return p.status === 'drafted' || p.status === 'posted'; }).length;
+}
+
+function getPhasePrompt(p, ctx) {
+  var base = 'You are helping the founder of RecoverAI engage authentically on Reddit.\n\nApp context: ' + ctx + '\n\nReddit post from r/' + p.sub + ':\nTitle: ' + p.title + '\nBody: ' + p.body + '\n\n';
+  if (S.phase === 'warmup') {
+    return base + 'Write a Reddit reply following these STRICT warmup rules:\n1. Be genuinely helpful — give real, specific advice that answers their actual problem\n2. Sound like a normal person who has experience with this topic. Casual, empathetic, direct.\n3. DO NOT mention RecoverAI, any app, or anything you are building. Not even a hint.\n4. This is purely about building trust and credibility as a helpful community member.\n5. 80-150 words. No bullet points. No headers. Conversational prose only.\n\nOnly return the reply text, nothing else.';
+  }
+  if (S.phase === 'soft') {
+    return base + 'Write a Reddit reply following these soft intro rules:\n1. Lead with genuine, specific helpful advice that fully addresses their problem\n2. Sound like a normal person — casual, empathetic, not salesy at all\n3. Only if it fits PERFECTLY and naturally, add ONE sentence at the end mentioning you have been building an app for exactly this problem — phrased like "I have actually been building something for this exact issue if you are curious, it is called RecoverAI" — never pushy\n4. If the app mention does not fit naturally, leave it out entirely. When in doubt, leave it out.\n5. 80-160 words. No bullet points. No headers. Conversational prose only.\n\nOnly return the reply text, nothing else.';
+  }
+  return base + 'Write a Reddit reply following these rules:\n1. Lead with genuinely helpful, specific advice that answers their actual problem\n2. Sound like a normal person — casual, empathetic, not a marketer\n3. Where relevant, naturally mention RecoverAI in one sentence — frame it as something you built for this exact problem, not a pitch. For example: I actually built an app called RecoverAI for exactly this — it generates a personalised rehab plan based on your specific injury.\n4. If it does not fit naturally, leave it out\n5. 80-160 words. No bullet points. No headers. Conversational prose only.\n\nOnly return the reply text, nothing else.';
 }
 
 async function draftReply() {
-  const p = S.posts.find(x => x.id === S.selectedId);
-  if(!p) return;
-  if(!S.apiKey) { alert('Add your Anthropic API key in Setup first.'); showView('setup'); return; }
-  const btn = document.getElementById('btn-draft');
+  var p = S.posts.find(function(x) { return x.id === S.selId; });
+  if (!p) return;
+  if (!S.apiKey) { alert('Add your Anthropic API key in Setup first.'); showView('setup'); return; }
+  var btn = document.getElementById('btn-draft');
   btn.innerHTML = '<i class="ti ti-loader spin"></i> Drafting...';
   btn.disabled = true;
   document.getElementById('reply-ta').value = '';
-  const ctx = document.getElementById('app-ctx') ? document.getElementById('app-ctx').value : S.appCtx;
+  var ctx = document.getElementById('app-ctx') ? document.getElementById('app-ctx').value : S.appCtx;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': S.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: getPhasePrompt(p, ctx)
-        }]
+        messages: [{ role: 'user', content: getPhasePrompt(p, ctx) }]
       })
     });
-    const data = await res.json();
-    const text = data.content?.find(c => c.type === 'text')?.text || 'Error generating reply — check your API key.';
+    var data = await res.json();
+    var text = (data.content && data.content.find(function(c) { return c.type === 'text'; })) ? data.content.find(function(c) { return c.type === 'text'; }).text : 'Error generating reply — check your API key in Setup.';
     p.draft = text;
     p.status = 'drafted';
     document.getElementById('reply-ta').value = text;
-    document.getElementById('reply-status').textContent = 'Draft ready';
-    save();
-    renderPosts();
-    updateStats();
+    document.getElementById('r-status').textContent = 'Draft ready';
+    save(); renderPosts(); updateStats();
   } catch(e) {
     document.getElementById('reply-ta').value = 'Error: ' + e.message;
   }
@@ -1071,130 +657,90 @@ async function draftReply() {
 }
 
 function postReply() {
-  const p = S.posts.find(x => x.id === S.selectedId);
-  if(!p) return;
-  const text = document.getElementById('reply-ta').value.trim();
-  if(!text) { alert('Write or draft a reply first.'); return; }
-  const res = document.getElementById('post-result');
-
-  if(p.url && p.url !== '#') {
-    const copied = copyToClipboard(text);
-    p.status = 'posted';
-    p.draft = text;
-    const now = new Date();
-    S.queue.push({ ...p, postedAt: now.toLocaleTimeString(), replyText: text });
-    res.style.display = 'block';
-    res.className = 'post-result success';
-    res.innerHTML = copied
-      ? '✓ Reply copied to clipboard — paste it into Reddit now'
-      : '✓ Marked as posted — copy your reply from the box above and paste it into Reddit';
-    document.getElementById('reply-status').textContent = '✓ Posted';
-    save();
-    renderPosts();
-    updateStats();
-  } else {
-    const copied = copyToClipboard(text);
-    p.status = 'posted';
-    p.draft = text;
-    const now = new Date();
-    S.queue.push({ ...p, postedAt: now.toLocaleTimeString(), replyText: text });
-    res.style.display = 'block';
-    res.className = 'post-result success';
-    res.innerHTML = copied ? '✓ Reply copied — paste it into the Reddit post now' : '✓ Marked as posted — copy reply above and paste into Reddit';
-    document.getElementById('reply-status').textContent = '✓ Posted';
-    save();
-    renderPosts();
-    updateStats();
-  }
-}
-
-function copyToClipboard(text) {
+  var p = S.posts.find(function(x) { return x.id === S.selId; });
+  if (!p) return;
+  var text = document.getElementById('reply-ta').value.trim();
+  if (!text) { alert('Write or draft a reply first.'); return; }
+  var res = document.getElementById('post-result');
   try {
-    if(navigator.clipboard) { navigator.clipboard.writeText(text); return true; }
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    return true;
-  } catch(e) { return false; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+  } catch(e) {}
+  p.status = 'posted';
+  p.draft = text;
+  p.postedAt = new Date().toLocaleTimeString();
+  S.queue.push(JSON.parse(JSON.stringify(p)));
+  res.style.display = 'block';
+  res.className = 'post-result ok';
+  res.textContent = '✓ Reply copied to clipboard — paste it into the Reddit post now';
+  document.getElementById('r-status').textContent = '✓ Posted';
+  save(); renderPosts(); updateStats();
 }
 
 function skipPost() {
-  const p = S.posts.find(x => x.id === S.selectedId);
-  if(p) { p.status = 'skipped'; save(); renderPosts(); document.getElementById('detail-empty').style.display = 'flex'; document.getElementById('detail-content').style.display = 'none'; S.selectedId = null; }
+  var p = S.posts.find(function(x) { return x.id === S.selId; });
+  if (p) {
+    p.status = 'skipped';
+    save(); renderPosts();
+    document.getElementById('d-empty').style.display = 'flex';
+    document.getElementById('d-content').style.display = 'none';
+    S.selId = null;
+  }
 }
 
-function addManualPost() {
-  const title = document.getElementById('paste-title').value.trim();
-  const body = document.getElementById('paste-body').value.trim();
-  const sub = document.getElementById('paste-sub').value.trim().replace(/^r\//,'') || 'reddit';
-  if(!title) { alert('Enter a post title at minimum.'); return; }
-  const id = 'manual_' + Date.now();
-  S.posts.unshift({ id, sub, title, body: body || title, upvotes: 0, comments: 0, age: 'just now', url: '#', relevance: 80, urgency: 75, status: 'pending', draft: '' });
-  save();
-  renderPosts();
-  renderSidebar();
-  document.getElementById('paste-title').value = '';
-  document.getElementById('paste-body').value = '';
-  document.getElementById('paste-sub').value = '';
+function addPost() {
+  var title = document.getElementById('p-title').value.trim();
+  var body = document.getElementById('p-body').value.trim();
+  var sub = document.getElementById('p-sub').value.trim().replace(/^r\//, '') || 'reddit';
+  if (!title) { alert('Enter a post title at minimum.'); return; }
+  var id = 'manual_' + Date.now();
+  S.posts.unshift({ id: id, sub: sub, title: title, body: body || title, upvotes: 0, comments: 0, age: 'just now', url: '#', relevance: 80, urgency: 75, status: 'pending', draft: '' });
+  save(); renderPosts(); renderSidebar();
+  document.getElementById('p-title').value = '';
+  document.getElementById('p-body').value = '';
+  document.getElementById('p-sub').value = '';
 }
 
 function renderQueue() {
-  const el = document.getElementById('queue-list');
-  const items = S.posts.filter(p => p.status === 'posted' || p.status === 'drafted');
-  if(items.length === 0) {
+  var el = document.getElementById('queue-body');
+  var items = S.posts.filter(function(p) { return p.status === 'posted' || p.status === 'drafted'; });
+  if (items.length === 0) {
     el.innerHTML = '<div class="empty-state"><i class="ti ti-inbox"></i><p>No replies drafted or posted yet</p></div>';
     return;
   }
-  el.innerHTML = items.map(p => `
-    <div class="queue-card">
-      <div class="queue-head">
-        <span class="queue-sub">r/${p.sub}</span>
-        <span class="status-tag ${p.status==='posted'?'t-posted':'t-drafted'}" style="margin-left:auto;">${p.status==='posted'?'✓ Posted':'Draft ready'}</span>
-      </div>
-      <div class="post-title" style="font-size:13px;">${p.title}</div>
-      <div class="queue-draft">${p.draft || 'No draft yet'}</div>
-      ${p.postedAt ? `<div class="queue-time">Marked posted at ${p.postedAt}</div>` : ''}
-    </div>`).join('');
+  el.innerHTML = items.map(function(p) {
+    return '<div class="queue-card"><div class="queue-head"><span class="queue-sub">r/' + p.sub + '</span><span class="stag ' + (p.status==='posted'?'t-posted':'t-drafted') + '" style="margin-left:auto">' + (p.status==='posted'?'✓ Posted':'Draft ready') + '</span></div><div class="post-title" style="font-size:13px">' + p.title + '</div><div class="queue-draft">' + (p.draft || 'No draft yet') + '</div>' + (p.postedAt ? '<div class="queue-time">Marked posted at ' + p.postedAt + '</div>' : '') + '</div>';
+  }).join('');
 }
 
 async function runScan() {
-  S.appCtx = document.getElementById('app-ctx').value;
-  localStorage.setItem('rai_ctx', S.appCtx);
+  var ctx = document.getElementById('app-ctx') ? document.getElementById('app-ctx').value : '';
+  S.appCtx = ctx; save();
   showView('monitor');
-  const el = document.getElementById('posts-list');
-  el.innerHTML = '<div class="loading-row"><i class="ti ti-loader spin"></i> Scanning ' + S.subs.length + ' subreddits for opportunities...</div>';
-
-  const apiKey = S.apiKey;
-  if(!apiKey) {
-    setTimeout(() => {
-      S.posts = getMockPosts();
-      save(); renderPosts(); renderSidebar(); updateStats();
-    }, 1200);
+  document.getElementById('posts-list').innerHTML = '<div class="loading-row"><i class="ti ti-loader spin"></i> Loading example posts...</div>';
+  if (!S.apiKey) {
+    setTimeout(function() { S.posts = getMockPosts(); save(); renderPosts(); renderSidebar(); updateStats(); }, 800);
     return;
   }
-
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': S.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Generate 10 realistic Reddit posts from these subreddits: ${S.subs.join(', ')}.
-Posts should be real-feeling questions from injured people that RecoverAI could help with.
-Context: ${S.appCtx}
-Return ONLY valid JSON array, no markdown, no preamble:
-[{"id":"p1","sub":"running","title":"Post title","body":"2-3 sentences describing their problem","upvotes":42,"comments":8,"age":"3h ago","url":"https://reddit.com/r/running/comments/abc123","relevance":88,"urgency":72}]
-Vary subreddits. Mix relevance scores 50-95. Make posts sound authentic and human.`
-        }]
+        messages: [{ role: 'user', content: 'Generate 8 realistic Reddit posts from these subreddits: ' + S.subs.join(', ') + '. Posts should be real-feeling questions from injured people that RecoverAI could help with. Context: ' + ctx + '. Return ONLY a valid JSON array, no markdown, no explanation: [{"id":"p1","sub":"running","title":"Post title","body":"2-3 sentences describing their problem","upvotes":42,"comments":8,"age":"3h ago","url":"https://reddit.com/r/running/comments/abc123","relevance":88,"urgency":72}]. Vary subreddits, mix relevance 55-95, make posts sound authentic.' }]
       })
     });
-    const data = await res.json();
-    const raw = data.content?.find(c => c.type === 'text')?.text || '[]';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    S.posts = JSON.parse(clean).map(p => ({ ...p, status: 'pending', draft: '' }));
+    var data = await res.json();
+    var raw = (data.content && data.content.find(function(c) { return c.type === 'text'; })) ? data.content.find(function(c) { return c.type === 'text'; }).text : '[]';
+    var clean = raw.replace(/```json|```/g, '').trim();
+    S.posts = JSON.parse(clean).map(function(p) { return Object.assign({}, p, { status: 'pending', draft: '' }); });
   } catch(e) {
     S.posts = getMockPosts();
   }
@@ -1203,18 +749,18 @@ Vary subreddits. Mix relevance scores 50-95. Make posts sound authentic and huma
 
 function getMockPosts() {
   return [
-    {id:'m1',sub:'running',title:'IT band been killing me for 2 months — what exercises actually help?',body:'Been dealing with this IT band issue since a half marathon in March. Tried foam rolling, resting, ice — nothing seems to work. Can\'t get a physio appointment for another 6 weeks. What do you actually do to fix this?',upvotes:47,comments:12,age:'2h ago',url:'#',relevance:94,urgency:88,status:'pending',draft:''},
+    {id:'m1',sub:'running',title:'IT band been killing me for 2 months — what exercises actually help?',body:'Been dealing with this IT band issue since a half marathon in March. Tried foam rolling, resting, ice — nothing seems to work. Can\'t get a physio appointment for another 6 weeks.',upvotes:47,comments:12,age:'2h ago',url:'#',relevance:94,urgency:88,status:'pending',draft:''},
     {id:'m2',sub:'physicaltherapy',title:'Finished PT but still have pain — what should I be doing at home?',body:'My insurance ran out so I had to stop going to PT. My shoulder is better than it was but still not 100%. Are there exercises I should be doing on my own to keep making progress?',upvotes:23,comments:6,age:'5h ago',url:'#',relevance:91,urgency:79,status:'pending',draft:''},
     {id:'m3',sub:'Fitness',title:'Pulled hamstring 3 weeks ago — can I still train?',body:'Grade 1 hamstring strain from a sprint. Doctor said rest but I\'m going insane. What can I do in the gym that won\'t make it worse? Upper body only? Any mobility work safe to do?',upvotes:61,comments:18,age:'1h ago',url:'#',relevance:87,urgency:85,status:'pending',draft:''},
     {id:'m4',sub:'running',title:'Plantar fasciitis recovery — how long realistically?',body:'Been off running for 5 weeks with PF. Doing the calf stretches my GP recommended but progress feels really slow. I have a 10k in 9 weeks. Is that even possible at this point?',upvotes:34,comments:9,age:'4h ago',url:'#',relevance:89,urgency:92,status:'pending',draft:''},
-    {id:'m5',sub:'physicaltherapy',title:'Knee surgery recovery — feeling completely lost without guidance',body:'Had my meniscus repaired 6 weeks ago. Surgeon just said "do your exercises" but I only have a generic sheet. Physio sessions are $180 each and I can\'t afford to keep going. Is there a better way to structure my recovery?',upvotes:56,comments:14,age:'6h ago',url:'#',relevance:96,urgency:83,status:'pending',draft:''},
-    {id:'m6',sub:'Fitness',title:'Lower back pain making everything impossible — where do I even start?',body:'Threw my back out deadlifting 2 months ago. Terrified to lift anything now. What exercises are safe to start rebuilding? Don\'t want to see a doctor just for them to say "rest more".',upvotes:78,comments:22,age:'3h ago',url:'#',relevance:85,urgency:77,status:'pending',draft:''},
-    {id:'m7',sub:'running',title:'Shin splints every time I increase mileage — am I doing something wrong?',body:'Every time I try to build my weekly mileage above 25 miles I get shin splints. Rest, then start again, same thing happens. Is this a strength issue? What should I be doing differently?',upvotes:29,comments:7,age:'8h ago',url:'#',relevance:82,urgency:68,status:'pending',draft:''},
+    {id:'m5',sub:'physicaltherapy',title:'Knee surgery recovery — feeling completely lost without guidance',body:'Had my meniscus repaired 6 weeks ago. Surgeon just said do your exercises but I only have a generic sheet. Physio sessions are $180 each and I can\'t afford to keep going.',upvotes:56,comments:14,age:'6h ago',url:'#',relevance:96,urgency:83,status:'pending',draft:''},
+    {id:'m6',sub:'Fitness',title:'Lower back pain making everything impossible — where do I even start?',body:'Threw my back out deadlifting 2 months ago. Terrified to lift anything now. What exercises are safe to start rebuilding? Don\'t want to see a doctor just for them to say rest more.',upvotes:78,comments:22,age:'3h ago',url:'#',relevance:85,urgency:77,status:'pending',draft:''},
+    {id:'m7',sub:'running',title:'Shin splints every time I increase mileage — am I doing something wrong?',body:'Every time I try to build my weekly mileage above 25 miles I get shin splints. Rest, then start again, same thing happens. Is this a strength issue? What should I be doing differently?',upvotes:29,comments:7,age:'8h ago',url:'#',relevance:82,urgency:68,status:'pending',draft:''}
   ];
 }
 
 // Init
-if(S.apiKey) updateConnPill(true);
+if (S.apiKey) updateConnPill(true);
 updatePhasePill();
 renderSidebar();
 renderPosts();
